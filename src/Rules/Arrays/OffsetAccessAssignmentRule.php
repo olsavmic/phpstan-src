@@ -2,7 +2,6 @@
 
 namespace PHPStan\Rules\Arrays;
 
-use PHPStan\Analyser\NullsafeOperatorHelper;
 use PHPStan\Analyser\Scope;
 use PHPStan\Rules\RuleErrorBuilder;
 use PHPStan\Rules\RuleLevelHelper;
@@ -42,12 +41,13 @@ class OffsetAccessAssignmentRule implements \PHPStan\Rules\Rule
 
 		$varTypeResult = $this->ruleLevelHelper->findTypeToCheck(
 			$scope,
-			NullsafeOperatorHelper::getNullsafeShortcircuitedExpr($node->var),
+			$node->var,
 			'',
 			static function (Type $varType) use ($potentialDimType): bool {
 				$arrayDimType = $varType->setOffsetValueType($potentialDimType, new MixedType());
 				return !($arrayDimType instanceof ErrorType);
-			}
+			},
+			true
 		);
 		$varType = $varTypeResult->getType();
 		if ($varType instanceof ErrorType) {
@@ -65,7 +65,8 @@ class OffsetAccessAssignmentRule implements \PHPStan\Rules\Rule
 				static function (Type $dimType) use ($varType): bool {
 					$arrayDimType = $varType->setOffsetValueType($dimType, new MixedType());
 					return !($arrayDimType instanceof ErrorType);
-				}
+				},
+				false
 			);
 			$dimType = $dimTypeResult->getType();
 		} else {

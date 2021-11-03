@@ -2,7 +2,6 @@
 
 namespace PHPStan\Rules\Functions;
 
-use PHPStan\Analyser\NullsafeOperatorHelper;
 use PHPStan\Analyser\Scope;
 use PHPStan\Internal\SprintfHelper;
 use PHPStan\Reflection\InaccessibleMethod;
@@ -54,11 +53,12 @@ class CallCallablesRule implements \PHPStan\Rules\Rule
 
 		$typeResult = $this->ruleLevelHelper->findTypeToCheck(
 			$scope,
-			NullsafeOperatorHelper::getNullsafeShortcircuitedExpr($node->name),
+			$node->name,
 			'Invoking callable on an unknown class %s.',
 			static function (Type $type): bool {
 				return $type->isCallable()->yes();
-			}
+			},
+			true
 		);
 		$type = $typeResult->getType();
 		if ($type instanceof ErrorType) {

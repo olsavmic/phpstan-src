@@ -3,6 +3,7 @@
 namespace PHPStan\Rules;
 
 use PhpParser\Node\Expr;
+use PHPStan\Analyser\NullsafeOperatorHelper;
 use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Type\BenevolentUnionType;
@@ -132,7 +133,8 @@ class RuleLevelHelper
 		Scope $scope,
 		Expr $var,
 		string $unknownClassErrorPattern,
-		callable $unionTypeCriteriaCallback
+		callable $unionTypeCriteriaCallback,
+		bool $shouldShortCircuitNullSafeOperator = false
 	): FoundTypeResult
 	{
 		if ($this->checkThisOnly && !$this->isThis($var)) {
@@ -141,6 +143,10 @@ class RuleLevelHelper
 		$type = $scope->getType($var);
 		if (!$this->checkNullables && !$type instanceof NullType) {
 			$type = \PHPStan\Type\TypeCombinator::removeNull($type);
+		}
+
+		if ($shouldShortCircuitNullSafeOperator && TypeCombinator::containsNull($type)) {
+			$type = $scope->getType(NullsafeOperatorHelper::getNullsafeShortcircuitedExpr($var));
 		}
 
 		if (

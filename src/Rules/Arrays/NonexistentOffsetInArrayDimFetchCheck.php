@@ -3,7 +3,6 @@
 namespace PHPStan\Rules\Arrays;
 
 use PhpParser\Node\Expr;
-use PHPStan\Analyser\NullsafeOperatorHelper;
 use PHPStan\Analyser\Scope;
 use PHPStan\Rules\RuleError;
 use PHPStan\Rules\RuleErrorBuilder;
@@ -44,11 +43,12 @@ class NonexistentOffsetInArrayDimFetchCheck
 	{
 		$typeResult = $this->ruleLevelHelper->findTypeToCheck(
 			$scope,
-			NullsafeOperatorHelper::getNullsafeShortcircuitedExpr($var),
+			$var,
 			$unknownClassPattern,
 			static function (Type $type) use ($dimType): bool {
 				return $type->hasOffsetValueType($dimType)->yes();
-			}
+			},
+			true
 		);
 		$type = $typeResult->getType();
 		if ($type instanceof ErrorType) {

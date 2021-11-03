@@ -4,7 +4,6 @@ namespace PHPStan\Rules\Methods;
 
 use PhpParser\Node;
 use PhpParser\Node\Expr\MethodCall;
-use PHPStan\Analyser\NullsafeOperatorHelper;
 use PHPStan\Analyser\Scope;
 use PHPStan\Internal\SprintfHelper;
 use PHPStan\Reflection\ParametersAcceptorSelector;
@@ -62,11 +61,12 @@ class CallMethodsRule implements \PHPStan\Rules\Rule
 
 		$typeResult = $this->ruleLevelHelper->findTypeToCheck(
 			$scope,
-			NullsafeOperatorHelper::getNullsafeShortcircuitedExpr($node->var),
+			$node->var,
 			sprintf('Call to method %s() on an unknown class %%s.', SprintfHelper::escapeFormatString($name)),
 			static function (Type $type) use ($name): bool {
 				return $type->canCallMethods()->yes() && $type->hasMethod($name)->yes();
-			}
+			},
+			true
 		);
 		$type = $typeResult->getType();
 		if ($type instanceof ErrorType) {
